@@ -1,0 +1,24 @@
+{
+    "name": "hiboutik/hiboutikapi",
+    "type": "library",
+    "description": "Hiboutik API REST",
+    "keywords": ["Hiboutik"],
+    "homepage": "http://www.hiboutik.com/",
+    "license": "GPLv3",
+    "authors": [
+        {
+            "name": "Hiboutik",
+            "email": "contact@hiboutik.com",
+            "homepage": "http://www.hiboutik.com/"
+        }
+    ],
+    "require": {
+        "php": ">=5.3",
+        "php-curl-class/php-curl-class": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Hiboutik\\": "lib/Hiboutik/"
+        }
+    }
+}

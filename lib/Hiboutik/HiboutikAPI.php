@@ -158,7 +158,7 @@ use Curl;
 class HiboutikAPI extends Curl\Curl
 {
 
-  const VERSION_API = "1.0.0";
+  const VERSION_API = "1.0.1";
 
   protected $account_connection;
   protected $user_connection;
@@ -211,12 +211,9 @@ class HiboutikAPI extends Curl\Curl
   public function getHiboutik($rest_resource = "")
   {
     try {
-      if($rest_resource === "") {
-        throw new \Exception("HiboutikAPI: No resource specified.");
-      }
 
       $this->setHeader('Content-Type', 'application/json');
-      $this->get($this->account_connection."/".$rest_resource."/");
+      $this->get($this->account_connection."/".$rest_resource."");
 
       if ($this->error) {
         throw new \Exception("CURL error: ".$this->errorCode." : ".$this->errorMessage);
@@ -240,12 +237,8 @@ class HiboutikAPI extends Curl\Curl
         throw new \Exception("HiboutikAPI: post data is empty");
       }
 
-      if($rest_resource === "") {
-        throw new \Exception("HiboutikAPI: No resource specified.");
-      }
-
       $this->setHeader('Content-Type', 'application/json');
-      $this->post($this->account_connection."/".$rest_resource."/", json_encode($data));
+      $this->post($this->account_connection."/".$rest_resource."", json_encode($data));
 
       if ($this->error) {
         throw new \Exception("CURL error: ".$this->errorCode." : ".$this->errorMessage);
@@ -269,12 +262,8 @@ class HiboutikAPI extends Curl\Curl
         throw new \Exception("HiboutikAPI: put data is empty");
       }
 
-      if($rest_resource === "") {
-        throw new \Exception("HiboutikAPI: No resource specified.");
-      }
-
       $this->setHeader('Content-Type', 'application/json');
-      $this->put($this->account_connection."/".$rest_resource."/", json_encode($data));
+      $this->put($this->account_connection."/".$rest_resource."", json_encode($data));
 
       if ($this->error) {
         throw new \Exception("CURL error: ".$this->errorCode." : ".$this->errorMessage);
@@ -299,7 +288,7 @@ class HiboutikAPI extends Curl\Curl
       }
 
       if($rest_resource === "") {
-        throw new \Exception("HiboutikAPI: No resource specified.");
+        throw new \Exception("HiboutikAPI: deleteHiboutik() method -> No resource specified.");
       }
 
       $this->setHeader('Content-Type', 'application/json');

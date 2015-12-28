@@ -65,7 +65,7 @@ To create a new product:
 $data = [
   "product_model" => "My product",
   "product_barcode" => "",
-  "product_brand" => "My Brand",
+  "product_brand" => "2",
   "product_supplier" => "2",
   "product_price" => "99.90",
   "product_discount_price" => "89.90",

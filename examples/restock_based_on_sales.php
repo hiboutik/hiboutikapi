@@ -150,6 +150,8 @@ $cumul_produits_vendus[$my_product_id][$my_product_size] = $cumul_produits_vendu
 
 
 //récupération du stock disponible
+$stock_dispo = array();
+$stock_alerte = array();
 $stock_available = $hiboutik->getHiboutik("stock_available/warehouse_id/$i");
 foreach ($stock_available as $key => $value) {
 $id_prod_sa = $value -> product_id;

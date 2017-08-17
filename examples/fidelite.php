@@ -48,7 +48,7 @@ throw new Exception("$hiboutik_response", 75009);
 //on vérifie qu'on a bien un résultat pour notre appel à l'API
 if (count($order_details) <> "1")
 {
-$hiboutik_response = "Should obtain only one result but we fond : " . count($time_tracking_details);
+$hiboutik_response = "Should obtain only one result but we fond : " . count($order_details);
 throw new Exception("$hiboutik_response", 75009);
 }
 

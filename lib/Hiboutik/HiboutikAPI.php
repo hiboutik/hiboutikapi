@@ -3,22 +3,25 @@
  *
  *  Class HiboutikAPI
  *
+ *  @version 1.1.0
  *  @author:    Hiboutik
  *  @email      contact[at]hiboutik.com
  *
- ***********************************************************************************************************************
+ *******************************************************************************
  *  @licence    GPLv3 as in "https://gnu.org/licenses/gpl.html"
- ***********************************************************************************************************************
+ *******************************************************************************
  *
- *   This class makes API calls for the Hiboutik API. For a complete documentations refer to your Hiboutik account:
+ *   This class makes API calls for the Hiboutik API. For a complete
+ *   documentation refer to your Hiboutik account:
  *   SETTINGS -> USERS -> Click on the wrench symbol.
  *
  *
  *
  *  @INSTALL:
  *  ---------
+ *  You have two choises, with composer or manual.
  *
- *  With Composer:
+ *  1. With Composer:
  *
  *  Install in terminal:
  *  <code>
@@ -34,18 +37,23 @@
  *    $hiboutik = new \Hiboutik\HiboutikAPI($account, $user, $api_key);
  *  </code>
  *
+ *  or
  *
+ *  2. Manual install:
  *
- *
- *  Manual install:
- *
- *  Download the Curl class: https://github.com/php-curl-class/php-curl-class/tree/master/src/Curl with its three files.
- *  Include them in your file and then the HiboutikAPI class.
+ *  Download the Curl class (latest version as of this writing: 7.4.0) from
+ *  here:
+ *  https://github.com/php-curl-class/php-curl-class.
+ *  Include the files in your file and then the HiboutikAPI class.
  *
  *  <code>
- *    include "CaseInsensitiveArray.php";
- *    include "Curl.php";
- *    include "MultiCurl.php";
+ *    require 'php-curl-class-master/src/Curl/ArrayUtil.php';
+ *    require 'php-curl-class-master/src/Curl/Curl.php';
+ *    require 'php-curl-class-master/src/Curl/CaseInsensitiveArray.php';
+ *    require 'php-curl-class-master/src/Curl/Decoder.php';
+ *    require 'php-curl-class-master/src/Curl/MultiCurl.php';
+ *    require 'php-curl-class-master/src/Curl/StrUtil.php';
+ *    require 'php-curl-class-master/src/Curl/Url.php';
  *
  *    include "HiboutikAPI.php"
  *
@@ -65,13 +73,30 @@
  *
  *  <code>
  *    $account = "my_shop";//       url: https://my_shop.hiboutik.com/
- *    $user = "user@email.com";//   Hiboutik user name: the email address you use to connect to your account.
+ *    $user = "user@email.com";//   Hiboutik user name: the email address you
+ *    use to connect to your account.
  *    $key = "ORECJF05UQZ133Z1O4O0Z2XLZ7TCSAVZP01Z";//  Hiboutik API token
  *
- *    $hiboutik = new \Hiboutik\HiboutikAPI($account, $user, $key);//   Initialize
+ *    $hiboutik = new \Hiboutik\HiboutikAPI($account, $user, $key);// Initialize
  *
  *    //  Get all products
  *    $products = $hiboutik->getHiboutik("products");
+ *    if ($products !== NULL) {
+ *      // Do stuff
+ *    } else {// An error occured
+ *      switch ($hiboutik->errorCode) {
+ *        case 401:
+ *          // Unauthorized
+ *          print $hiboutik->errorMessage;
+ *          break;
+ *        case 500:
+ *          // Server error
+ *          print $hiboutik->errorMessage;
+ *          break;
+ *        default:
+ *          // Unknown error
+ *      }
+ *    }
  *
  *
  *    //  Create a product
@@ -89,6 +114,22 @@
  *      "product_vat"=> 0
  *    ];
  *    $hiboutik->postHiboutik("products", $data);
+ *    if ($products !== NULL) {
+ *      // Do stuff
+ *    } else {// An error occured
+ *      switch ($hiboutik->errorCode) {
+ *        case 401:
+ *          // Unauthorized
+ *          print $hiboutik->errorMessage;
+ *          break;
+ *        case 500:
+ *          // Server error
+ *          print $hiboutik->errorMessage;
+ *          break;
+ *        default:
+ *          // Unknown error
+ *      }
+ *    }
  *  </code>
  *
  *
@@ -100,51 +141,54 @@
  *
  *  $hiboutik->getHiboutik($rest_resource);
  *             ---------------------------
- *    This method returns an array with the requested data. For a complete reference of the Hiboutik API see the
+ *    This method returns an array with the requested data or NULL if an error
+ *    occured. For a complete reference of the Hiboutik API see the
  *    documentation via your Hiboutik account.
  *    @param
  *      $rest_resource        : string, required
  *    @return
- *      array
+ *      array if successful
+ *      NULL if error
  *
  *  $hiboutik->postHiboutik($rest_resource, $data);
  *             -----------------------------------
- *    This method sends post requests. The $data array must be formatted according to the Hiboutik API.
- *    Returns the last inserted id.
+ *    This method sends post requests. The $data array must be formatted
+ *    according to the Hiboutik API.
  *    @param
  *      $rest_resource        : string, required
  *      $data                 : array, required
  *    @return
- *      array
+ *      string if successful
+ *      NULL if error
  *
  *  $hiboutik->putHiboutik($rest_resource, $data);
  *             ----------------------------------
- *    This method sends put requests. The $data array must be formatted according to the Hiboutik API.
+ *    This method sends put requests. The $data array must be formatted
+ *    according to the Hiboutik API.
  *    @param
  *      $rest_resource        : string, required
  *      $data                 : array, required
  *    @return
- *      array
+ *      string if successful
+ *      NULL if error
  *
- *
- *  $hiboutik->deleteHiboutik($rest_resource, $id);
- *             -----------------------------------
- *    This method sends delete requests. The $data array must be formatted according to the Hiboutik API.
+ *  $hiboutik->deleteHiboutik($rest_resource, $id[, $id, ...]);
+ *             -----------------------------------------------
+ *    This method sends delete requests. The $data array must be formatted
+ *    according to the Hiboutik API.
  *    @param
  *      $rest_resource        : string, required
  *      $id                   : string, required
  *    @return
- *      array
+ *      string if successful
+ *      NULL if error
  *
  *
- *  $hiboutik->debug($debug);
- *             -------------
- *    This method activates error display.
- *    It is set to "false" by default - no  error messages are sent to log.
- *    @param
- *      $debug                : $bool
- *    @return
- *      $this
+ *  If an error occured, its details will be available, inherited from the Curl
+ *  class:
+ *    $hiboutik->errorCode;
+ *    $hiboutik->errorMessage;
+ *  See php-curl-class documentation for more details.
  *
  */
 
@@ -155,15 +199,13 @@ namespace Hiboutik;
 use Curl;
 
 
-class HiboutikAPI extends Curl\Curl
+class HiboutikAPI extends \Curl\Curl
 {
-
-  const VERSION_API = "1.0.1";
+  const VERSION_API = "1.1.0";
 
   protected $account_connection;
   protected $user_connection;
   protected $key_connection;
-  protected $debug;
 
 
 
@@ -174,10 +216,9 @@ class HiboutikAPI extends Curl\Curl
         throw new \Exception("HiboutikAPI: The contructor expects exactly 3 (three) arguments.");
       }
 
-      $this->account_connection   = "https://".$account.".hiboutik.com/apirest";
-      $this->user_connection      = $user;
-      $this->key_connection       = $key;
-      $this->debug                = false;
+      $this->account_connection = "https://".$account.".hiboutik.com/apirest";
+      $this->user_connection    = $user;
+      $this->key_connection     = $key;
 
       parent::__construct();
 
@@ -185,24 +226,12 @@ class HiboutikAPI extends Curl\Curl
       $user_agent    .= " PHP/" . PHP_VERSION;
       $curl_version   = curl_version();
       $user_agent    .= ' curl/' . $curl_version['version'];
-      $this->setUserAgent($user_agent);
-
+      $this->setHeader('Content-Type', 'application/json');
       $this->setBasicAuthentication($user, $key);
+      $this->setUserAgent($user_agent);
     } catch(\Exception $e) {
-      trigger_error($e->getMessage(), E_USER_ERROR);
+      trigger_error($e->getMessage()." -> ".$e->getTraceAsString(), E_USER_WARNING);
     }
-  }
-
-
-
-
-  public function debug($debug = false)
-  {
-    if($debug === true) {
-      $this->debug = true;
-    }
-
-    return $this;
   }
 
 
@@ -211,19 +240,14 @@ class HiboutikAPI extends Curl\Curl
   public function getHiboutik($rest_resource = "")
   {
     try {
-
-      $this->setHeader('Content-Type', 'application/json');
-      $this->get($this->account_connection."/".$rest_resource."");
-
+      $this->get($this->account_connection."/".$rest_resource);
       if ($this->error) {
         throw new \Exception("CURL error: ".$this->errorCode." : ".$this->errorMessage);
       } else {
         return $this->response;
       }
     } catch(\Exception $e) {
-      if($this->debug === true) {
-        trigger_error($e->getMessage(), E_USER_ERROR);
-      }
+      trigger_error($e->getMessage()." -> ".$e->getTraceAsString(), E_USER_WARNING);
     }
   }
 
@@ -236,19 +260,14 @@ class HiboutikAPI extends Curl\Curl
       if(empty($data)) {
         throw new \Exception("HiboutikAPI: post data is empty");
       }
-
-      $this->setHeader('Content-Type', 'application/json');
-      $this->post($this->account_connection."/".$rest_resource."", json_encode($data));
-
+      $this->post($this->account_connection."/".$rest_resource, json_encode($data));
       if ($this->error) {
         throw new \Exception("CURL error: ".$this->errorCode." : ".$this->errorMessage);
       } else {
         return $this->response;
       }
     } catch(\Exception $e) {
-      if($this->debug === true) {
-        trigger_error($e->getMessage(), E_USER_ERROR);
-      }
+      trigger_error($e->getMessage()." -> ".$e->getTraceAsString(), E_USER_WARNING);
     }
   }
 
@@ -261,51 +280,42 @@ class HiboutikAPI extends Curl\Curl
       if(empty($data)) {
         throw new \Exception("HiboutikAPI: put data is empty");
       }
-
-      $this->setHeader('Content-Type', 'application/json');
-      $this->put($this->account_connection."/".$rest_resource."", json_encode($data));
-
+      $this->put($this->account_connection."/".$rest_resource, json_encode($data));
       if ($this->error) {
         throw new \Exception("CURL error: ".$this->errorCode." : ".$this->errorMessage);
       } else {
         return $this->response;
       }
     } catch(\Exception $e) {
-      if($this->debug === true) {
-        trigger_error($e->getMessage(), E_USER_ERROR);
-      }
+      trigger_error($e->getMessage()." -> ".$e->getTraceAsString(), E_USER_WARNING);
     }
   }
 
 
 
 
-  public function deleteHiboutik($rest_resource = "", $id)
+  public function deleteHiboutik()
   {
+    $args = func_get_args();
+    $rest_resource = array_shift($args);
+    $ids = implode('/', $args);
     try {
-      if(empty($id)) {
+      if($rest_resource === NULL) {
+        throw new \Exception("HiboutikAPI: deleteHiboutik() method -> No rest resource specified.");
+      }
+      if ($ids === '') {
         throw new \Exception("HiboutikAPI: deleteHiboutik() method needs an id to delete");
       }
-
-      if($rest_resource === "") {
-        throw new \Exception("HiboutikAPI: deleteHiboutik() method -> No resource specified.");
-      }
-
-      $this->setHeader('Content-Type', 'application/json');
-      $this->delete($this->account_connection."/".$rest_resource."/".$id);
-
+      $this->delete($this->account_connection."/".$rest_resource."/".$ids);
       if ($this->error) {
-        throw new \Exception("CURL error: ".$this->errorCode." : ".$this->errorMessage);
+        throw new \Exception("CURL error: ".$this->errorCode." : ".$this->errorMessage.' -> ');
       } else {
         return $this->response;
       }
     } catch(\Exception $e) {
-      if($this->debug === true) {
-        trigger_error($e->getMessage(), E_USER_ERROR);
-      }
+      trigger_error($e->getMessage()." -> ".$e->getTraceAsString(), E_USER_WARNING);
     }
   }
 
-}
 
-?>
+}

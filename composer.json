@@ -4,7 +4,7 @@
     "description": "Hiboutik API REST",
     "keywords": ["Hiboutik"],
     "homepage": "http://www.hiboutik.com/",
-    "license": "GPLv3",
+    "license": "GPL-3.0-or-later",
     "authors": [
         {
             "name": "Hiboutik",

@@ -38,7 +38,7 @@ Include the files in your script and then the HiboutikAPI class.
 
 ```php
 <?php
-require 'php-curl-class-master/src/Curl/ArrayUtil.php';rray.php";
+require 'php-curl-class-master/src/Curl/ArrayUtil.php';
 require 'php-curl-class-master/src/Curl/Curl.php';
 require 'php-curl-class-master/src/Curl/CaseInsensitiveArray.php';
 require 'php-curl-class-master/src/Curl/Decoder.php';

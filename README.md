@@ -23,8 +23,7 @@ require 'vendor/autoload.php';
 ```
 
 ## Manual installation
-Download the Curl class: [php-curl-class](https://github.com/php-curl-class/php-curl-class/tree/master/src/Curl). Include the autoloader in your code:
-
+Download this package and include the autoloader.
 ```php
 <?php
 

@@ -67,7 +67,7 @@ class HiboutikAPI implements HiboutikAPIInterface
 /**
  * Legacy function
  *
- * @param string $resource
+ * @param string       $resource
  * @param array|object $data
  * @uses HiboutikAPI::_handleLegacyRequest
  * @return array|null
@@ -84,7 +84,7 @@ class HiboutikAPI implements HiboutikAPIInterface
 /**
  * Legacy function
  *
- * @param string $resource
+ * @param string       $resource
  * @param array|object $data
  * @uses HiboutikAPI::_handleLegacyRequest
  * @return array|null
@@ -101,7 +101,7 @@ class HiboutikAPI implements HiboutikAPIInterface
 /**
  * Legacy function
  *
- * @param string $resource
+ * @param string       $resource
  * @param array|object $data
  * @uses HiboutikAPI::_handleLegacyRequest
  * @return array|null
@@ -167,7 +167,7 @@ class HiboutikAPI implements HiboutikAPIInterface
 
 
 /**
- * @param string            $resource API route
+ * @param string     $resource API route
  * @param array|null $data
  * @uses HiboutikAPI::_handleRequest
  * @return array|string

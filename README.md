@@ -9,6 +9,7 @@ This repository contains the open source PHP library that allows you to access t
 
 ## Installation
 
+### Composer
 The Hiboutik PHP library can be installed with Composer. Run this command:
 
 ```sh
@@ -22,7 +23,7 @@ And in your script
 require 'vendor/autoload.php';
 ```
 
-## Manual installation
+### Manual installation
 Download this package and include the autoloader.
 ```php
 <?php
@@ -35,14 +36,14 @@ require 'HiboutikAPI/src/Hiboutik/autoloader.php';
 
 There are two types of authentication available: basic and OAuth.
 
-### Basic authentication
+#### Basic authentication
 
 ```php
 $hiboutik = new \Hiboutik\HiboutikAPI(YOUR_HIBOUTIK_ACCOUNT, USER, KEY);
 
 ```
 
-### OAuth
+#### OAuth
 
 ```php
 $hiboutik = new \Hiboutik\HiboutikAPI(YOUR_HIBOUTIK_ACCOUNT);
@@ -50,7 +51,7 @@ $hiboutik->oauth(ACCESS_TOKEN);
 
 ```
 
-## Usage
+### Usage
 
 To list all active products on your account:
 ```php
@@ -95,11 +96,19 @@ if ($hiboutik->request_ok) {
 
 ```
 
-## Pagination
+### Pagination
 
 The large datasets are paginated in the Hiboutik's API.
 Get the pagination information:
 ```php
 $pagination = $hiboutik->pagination();
 
+```
+
+### Legacy support
+
+For the scripts using the previous version of this package the methods are still available.
+The only difference is the instatiation of the constructor. A parameter with the API version must be specified for the v1:
+```php
+$hiboutik = new \Hiboutik\HiboutikAPI(YOUR_HIBOUTIK_ACCOUNT, USER, KEY, '1');
 ```

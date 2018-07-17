@@ -1,24 +1,28 @@
 {
     "name": "hiboutik/hiboutikapi",
+    "description": "Hiboutik API REST client",
     "type": "library",
-    "description": "Hiboutik API REST",
-    "keywords": ["Hiboutik"],
-    "homepage": "http://www.hiboutik.com/",
-    "license": "GPL-3.0-or-later",
+    "keywords": ["hiboutik", "hiboutikapi", "api"],
+    "homepage": "https://www.hiboutik.com/",
+    "license": "GPL-3.0",
     "authors": [
         {
             "name": "Hiboutik",
             "email": "contact@hiboutik.com",
-            "homepage": "http://www.hiboutik.com/"
+            "homepage": "https://www.hiboutik.com/",
+            "role": "Developer"
         }
     ],
+    "support": {
+      "email": "contact@hiboutik.com"
+    },
     "require": {
         "php": ">=5.3",
-        "php-curl-class/php-curl-class": "*"
+        "ext-curl": "*"
     },
     "autoload": {
         "psr-4": {
-            "Hiboutik\\": "lib/Hiboutik/"
+            "Hiboutik\\": "src/Hiboutik/"
         }
     }
 }

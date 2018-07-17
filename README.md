@@ -1,26 +1,16 @@
 # PHP library for Hiboutik API
 
-
 This repository contains the open source PHP library that allows you to access the **[Hiboutik](https://www.hiboutik.com)** Platform from your PHP app.
-
-
 
 ## Requirements
 
 * PHP 5.3.0 or newer
-* Composer
-* cURL library for PHP (php-curl-class)
-* Your Hiboutik access token: https://www.hiboutik.com
-
-
+* PHP cURL extension
 
 ## Installation
 
-The Hiboutik PHP library can be automatically installed with Composer or manually.
+The Hiboutik PHP library can be installed with Composer. Run this command:
 
-### Composer
-
-Run this command:
 ```sh
 composer require hiboutik/hiboutikapi
 ```
@@ -32,60 +22,55 @@ And in your script
 require 'vendor/autoload.php';
 ```
 
-### Manual installation
-Download the Curl class: [php-curl-class](https://github.com/php-curl-class/php-curl-class/tree/master/src/Curl) (latest version as of this writing: 7.4.0).
-Include the files in your script and then the HiboutikAPI class.
+## Manual installation
+Download the Curl class: [php-curl-class](https://github.com/php-curl-class/php-curl-class/tree/master/src/Curl). Include the autoloader in your code:
 
 ```php
 <?php
-require 'php-curl-class-master/src/Curl/ArrayUtil.php';
-require 'php-curl-class-master/src/Curl/Curl.php';
-require 'php-curl-class-master/src/Curl/CaseInsensitiveArray.php';
-require 'php-curl-class-master/src/Curl/Decoder.php';
-require 'php-curl-class-master/src/Curl/MultiCurl.php';
-require 'php-curl-class-master/src/Curl/StrUtil.php';
-require 'php-curl-class-master/src/Curl/Url.php';
 
-include "HiboutikAPI.php"
+require 'HiboutikAPI/src/Hiboutik/autoloader.php';
+
 ```
 
 ## Quick Documentation
 
-Initialize Hiboutik API with your API credentials:
+There are two types of authentication available: basic and OAuth.
+
+### Basic authentication
+
 ```php
-// Get your access token here: https://www.hiboutik.com/
 $hiboutik = new \Hiboutik\HiboutikAPI(YOUR_HIBOUTIK_ACCOUNT, USER, KEY);
+
 ```
 
+### OAuth
 
+```php
+$hiboutik = new \Hiboutik\HiboutikAPI(YOUR_HIBOUTIK_ACCOUNT);
+$hiboutik->oauth(ACCESS_TOKEN);
+
+```
 
 ## Usage
 
 To list all active products on your account:
 ```php
-$products = $hiboutik->getHiboutik("products");
-if ($products !== NULL) {
-  // Do stuff
-} else {// An error occured
-  switch ($hiboutik->errorCode) {
-    case 401:
-      // Unauthorized
-      print $hiboutik->errorMessage;
-      break;
-    case 500:
-      // Server error
-      print $hiboutik->errorMessage;
-      break;
-    default:
-      // Unknown error
+$result = $hiboutik->get("/products/");
+if ($hiboutik->request_ok) {
+  print_r($result);
+} else {
+  if (isset($result['details']['error_description'])) {
+    print $result['details']['error_description'];
+  } else {
+    print $result['error_description'];
   }
 }
+
 ```
-Returns an array of `Products` objects.
 
 To create a new product:
 ```php
-$data = [
+$hiboutik->post("products", [
   "product_model" => "My product",
   "product_barcode" => "",
   "product_brand" => "2",
@@ -97,12 +82,25 @@ $data = [
   "product_stock_management" => 0,
   "product_supplier_reference" => "",
   "product_vat" => 0
-];
-$hiboutik->postHiboutik("products", $data);
+]);
+
+if ($hiboutik->request_ok) {
+  print 'Product created!';
+} else {
+  if (isset($result['details']['error_description'])) {
+    print $result['details']['error_description'];
+  } else {
+    print $result['error_description'];
+  }
+}
+
 ```
 
+## Pagination
 
+The large datasets are paginated in the Hiboutik's API.
+Get the pagination information:
+```php
+$pagination = $hiboutik->pagination();
 
-## License
-
-Please see the [license file](https://github.com/hiboutik/hiboutikapi/blob/master/LICENSE) for more information.
+```

@@ -143,7 +143,7 @@ class HiboutikAPI implements HiboutikAPIInterface
     $this->errorCode = null;
     $code = $this->hr->getCode();
     if ($code === 200 or $code === 201) {
-      return json_decode($result, true);
+      return json_decode($result);
     } else {
       $this->errorCode = $this->hr->getCode();
       return null;

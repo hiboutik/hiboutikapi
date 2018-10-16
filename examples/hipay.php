@@ -10,7 +10,7 @@
  *  @licence    GPLv3 as in "https://gnu.org/licenses/gpl.html"
  ***********************************************************************************************************************
  *
- *   Ce script permet d'envoyer au TPE HiPay le montant a encaisser
+ *   Ce script permet d'envoyer au TPE HiPay le montant a encaisser. Le script, lorsqu'il est appelé à partir d'un bouton action d'une page vente, va interroger l'API Hiboutik pour avoir le détails des modes de paiement utilisés et va ensuite afficher le/s bouton/s permettant l'envoi au TPE HiPay via l'API HiPay. Il faut penser a whitelister l'adresse IP de la machine qui effectue la requête sur l'interface HiPay.
  *
  */
 

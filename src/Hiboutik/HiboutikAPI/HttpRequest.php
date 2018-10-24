@@ -6,7 +6,7 @@ namespace Hiboutik\HiboutikAPI;
 /**
  * @package Hiboutik\HiboutikAPI\HttpRequest
  *
- * @version 1.0.0
+ * @version 1.0.1
  * @author  Hiboutik
  *
  * @license GPLv3

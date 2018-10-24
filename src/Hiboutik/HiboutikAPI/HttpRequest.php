@@ -170,6 +170,7 @@ be "multipart\/form-data;boundary=------------------------a83e...."
     $this->_setOptions();
 
     if (($result = curl_exec($this->curl)) !== false) {
+      $this->curl_opts[CURLOPT_CUSTOMREQUEST] = null;
       return $result;
     }
   }
@@ -190,6 +191,7 @@ be "multipart\/form-data;boundary=------------------------a83e...."
     $this->_setOptions();
 
     if (($result = curl_exec($this->curl)) !== false) {
+      $this->curl_opts[CURLOPT_CUSTOMREQUEST] = null;
       return $result;
     }
   }
@@ -327,7 +329,11 @@ be "multipart\/form-data;boundary=------------------------a83e...."
  */
   public function setOAuthToken($token)
   {
-    $this->setHeaders('Authorization', "Bearer $token");
+    if (defined('CURLOPT_XOAUTH2_BEARER')) {
+      curl_setopt($this->curl, CURLOPT_XOAUTH2_BEARER, $token);
+    } else {
+      $this->setHeaders('Authorization', "Bearer $token");
+    }
     return $this;
   }
 

@@ -6,7 +6,7 @@ namespace Hiboutik\HiboutikAPI;
 /**
  * @package Hiboutik\HiboutikAPI\HttpRequest
  *
- * @version 1.0.1
+ * @version 1.1.0
  * @author  Hiboutik
  *
  * @license GPLv3
@@ -36,6 +36,7 @@ class HttpRequest implements HttpRequestInterface
     if (!extension_loaded('curl')) {
       throw new \ErrorException('cURL library is not loaded');
     }
+
     $this->current_headers = [];
     $this->send_headers = [];
     $this->curl = curl_init();
@@ -63,7 +64,12 @@ class HttpRequest implements HttpRequestInterface
  */
   public function resetCurl()
   {
-    curl_reset($this->curl);
+    if (function_exists('curl_reset')) {
+      curl_reset($this->curl);
+    } else {
+      curl_close($this->curl);
+      $this->curl = curl_init();
+    }
     return $this;
   }
 
@@ -77,6 +83,14 @@ class HttpRequest implements HttpRequestInterface
  */
   public function get($url, $data = null)
   {
+    /**
+     * PHP versions inferior to 5.5.11 have a bug what does not reset the
+     * 'CURLOPT_CUSTOMREQUEST' when setting it to null, but to a empty string.
+     * Bad request error ensues.
+     */
+    if (version_compare(PHP_VERSION, '5.5.11', '<')) {
+      $this->curl_opts[CURLOPT_CUSTOMREQUEST] = 'GET';
+    }
     $this->curl_opts[CURLOPT_URL] = $data === null ? $url : $url.'?'.http_build_query($data, '', '&');
     $this->curl_opts[CURLOPT_HTTPGET] = true;
     $this->curl_opts[CURLOPT_HTTPHEADER] = $this->_prepareHeaders();
@@ -103,22 +117,30 @@ class HttpRequest implements HttpRequestInterface
  */
   public function post($url, $data = null, $is_json = false)
   {
-/*
-If $data is "url encoded" the content type is "application\/x-www-form-
-urlencoded", otherwise, if the data passed is an array the content type will
-be "multipart\/form-data;boundary=------------------------a83e...."
-*/
+    /**
+     * If $data is "url encoded" the content type is "application\/x-www-form-
+     * urlencoded", otherwise, if the data passed is an array the content type
+     * will be "multipart\/form-data;boundary=------------------------a83e...."
+    */
     if ($is_json) {
       $this->setHeaders('Content-Type', 'application/json');
       $send_data = json_encode($data);
     } else {
-      if (is_array($data) || is_object($data)) {
+      if (is_array($data) or is_object($data)) {
         $send_data = http_build_query($data, '', '&');
       } else {
         $send_data = http_build_query([$data], '', '&');
       }
     }
 
+    /**
+     * PHP versions inferior to 5.5.11 have a bug what does not reset the
+     * 'CURLOPT_CUSTOMREQUEST' when setting it to null, but to a empty string.
+     * Bad request error ensues.
+     */
+    if (version_compare(PHP_VERSION, '5.5.11', '<')) {
+      $this->curl_opts[CURLOPT_CUSTOMREQUEST] = 'POST';
+    }
     $this->curl_opts[CURLOPT_URL] = $url;
     $this->curl_opts[CURLOPT_POST] = true;
     $this->curl_opts[CURLOPT_POSTFIELDS] = $send_data;
@@ -156,7 +178,7 @@ be "multipart\/form-data;boundary=------------------------a83e...."
       $this->setHeaders('Content-Type', 'application/json');
       $send_data = json_encode($data);
     } else {
-      if (is_array($data) || is_object($data)) {
+      if (is_array($data) or is_object($data)) {
         $send_data = http_build_query($data, '', '&');
       } else {
         $send_data = http_build_query([$data], '', '&');
@@ -168,9 +190,9 @@ be "multipart\/form-data;boundary=------------------------a83e...."
     $this->curl_opts[CURLOPT_HTTPHEADER] = $this->_prepareHeaders();
 
     $this->_setOptions();
+    $this->curl_opts[CURLOPT_CUSTOMREQUEST] = null;
 
     if (($result = curl_exec($this->curl)) !== false) {
-      $this->curl_opts[CURLOPT_CUSTOMREQUEST] = null;
       return $result;
     }
   }
@@ -189,9 +211,9 @@ be "multipart\/form-data;boundary=------------------------a83e...."
     $this->curl_opts[CURLOPT_HTTPHEADER] = $this->_prepareHeaders();
 
     $this->_setOptions();
+    $this->curl_opts[CURLOPT_CUSTOMREQUEST] = null;
 
     if (($result = curl_exec($this->curl)) !== false) {
-      $this->curl_opts[CURLOPT_CUSTOMREQUEST] = null;
       return $result;
     }
   }
@@ -205,7 +227,7 @@ be "multipart\/form-data;boundary=------------------------a83e...."
   public function status()
   {
     $return_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
-    if ($return_code === 0) {
+    if ($return_code == 0) {
       return [
         'error' => [
           'code' => curl_errno($this->curl),

@@ -107,8 +107,8 @@ $pagination = $hiboutik->pagination();
 
 ### Legacy support
 
-For the scripts using the previous version of this package the methods are still available.
-The only difference is the instatiation of the constructor. A parameter with the API version must be specified for the v1:
+For the scripts using the previous version of this package the old methods are still available.
+The only difference is in the addition of a parameter in the constructor. The API version must be specified for the v1:
 ```php
 $hiboutik = new \Hiboutik\HiboutikAPI(YOUR_HIBOUTIK_ACCOUNT, USER, KEY, '1');
 ```

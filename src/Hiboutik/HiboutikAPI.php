@@ -7,7 +7,7 @@ namespace Hiboutik;
  *
  * @package Hiboutik\HiboutikAPI
  *
- * @version 2.2.0
+ * @version 2.3.0
  * @author  Hiboutik
  *
  * @license GPLv3
@@ -289,7 +289,10 @@ class HiboutikAPI implements HiboutikAPIInterface
           'error' => 'unknown_error',
           'code' => 99,
           'error_description' => 'Unknown error',
-          'details' => []
+          'details' => [
+            'http_code' => $code,
+            'response' => $response
+          ]
         ];
       }
     }

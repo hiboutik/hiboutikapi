@@ -6,7 +6,7 @@ namespace Hiboutik\HiboutikAPI;
 /**
  * @package Hiboutik\HiboutikAPI\HttpRequest
  *
- * @version 1.1.0
+ * @version 1.1.1
  * @author  Hiboutik
  *
  * @license GPLv3
@@ -351,11 +351,10 @@ class HttpRequest implements HttpRequestInterface
  */
   public function setOAuthToken($token)
   {
-    if (defined('CURLOPT_XOAUTH2_BEARER')) {
-      curl_setopt($this->curl, CURLOPT_XOAUTH2_BEARER, $token);
-    } else {
-      $this->setHeaders('Authorization', "Bearer $token");
-    }
+  /**
+   * Note: CURLOPT_XOAUTH2_BEARER doesn't work for now
+   */
+    $this->setHeaders('Authorization', "Bearer $token");
     return $this;
   }
 

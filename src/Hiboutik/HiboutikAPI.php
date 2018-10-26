@@ -29,6 +29,8 @@ class HiboutikAPI implements HiboutikAPIInterface
 
   /** @var integer|null HTTP status code if different from 200 and 201 */
   public $errorCode = null;
+  /** @var string|null Legacy API error message (if HTTP status code different from 200 and 201) */
+  public $errorMessage = null;
   /** @var boolean True if HTTP status code is 200 or 201 */
   public $request_ok = false;
 
@@ -145,11 +147,13 @@ class HiboutikAPI implements HiboutikAPIInterface
   protected function _handleLegacyRequest($result)
   {
     $this->errorCode = null;
+    $this->errorMessage = null;
     $code = $this->hr->getCode();
     if ($code === 200 or $code === 201) {
       return json_decode($result);
     } else {
       $this->errorCode = $this->hr->getCode();
+      $this->errorMessage = $this->hr->getHeader('X-Status-Reason');
       return null;
     }
   }

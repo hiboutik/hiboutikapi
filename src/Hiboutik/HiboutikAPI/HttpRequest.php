@@ -6,7 +6,7 @@ namespace Hiboutik\HiboutikAPI;
 /**
  * @package Hiboutik\HiboutikAPI\HttpRequest
  *
- * @version 1.1.1
+ * @version 1.1.2
  * @author  Hiboutik
  *
  * @license GPLv3
@@ -15,45 +15,45 @@ namespace Hiboutik\HiboutikAPI;
  */
 class HttpRequest implements HttpRequestInterface
 {
+  /** @var array Headers of the last request made */
+  public $current_headers = [];
+  /** @var array Headers to be sent with the next request. Shape: $key => $value */
+  public $send_headers = [];
   /** @var object Curl connection */
-  protected $curl;
-  /** @var array Headers of the last request made*/
-  protected $current_headers;
-  /** @var array Headers to be sent with the next request. Shape: $key => $value*/
-  protected $send_headers;
+  public $curl;
+  /** @var array Default curl options */
+  public $curl_opts_default = [
+    CURLOPT_AUTOREFERER    => false,
+    CURLOPT_FORBID_REUSE   => false,
+    CURLOPT_FRESH_CONNECT  => false,
+    CURLOPT_RETURNTRANSFER => true,
 
+    CURLOPT_CONNECTTIMEOUT => 10,
+    CURLOPT_TIMEOUT        => 10,
+    CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
+  ];
   /** @var array Curl options */
-  protected $curl_opts;
+  public $curl_opts = [];
 
 
 /**
  * Default constructor
  *
  * @param string $ua User agent
+ * @param array $curl_opts Curl options to override or to set
  */
-  public function __construct($ua = '-')
+  public function __construct($ua = '-', $opts = null)
   {
     if (!extension_loaded('curl')) {
       throw new \ErrorException('cURL library is not loaded');
     }
-
-    $this->current_headers = [];
-    $this->send_headers = [];
     $this->curl = curl_init();
-    $this->curl_opts = [
-      CURLOPT_AUTOREFERER    => false,
-      CURLOPT_FORBID_REUSE   => true,
-      CURLOPT_FRESH_CONNECT  => true,
-      CURLOPT_RETURNTRANSFER => true,
-
-      CURLOPT_CONNECTTIMEOUT => 4,
-      CURLOPT_TIMEOUT        => 10,
-      CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
-
-      CURLOPT_USERAGENT      => $ua,
-
-      CURLOPT_HEADERFUNCTION => $this->_makeCallback(),
-    ];
+    $this->curl_opts_default[CURLOPT_USERAGENT] = $ua;
+    $this->curl_opts_default[CURLOPT_HEADERFUNCTION] = $this->_makeCallback();
+    if (is_array($opts)) {
+      $this->curl_opts_default = array_merge($this->curl_opts_default, $opts);
+    }
+    curl_setopt_array($this->curl, $this->curl_opts_default);
   }
 
 
@@ -70,6 +70,7 @@ class HttpRequest implements HttpRequestInterface
       curl_close($this->curl);
       $this->curl = curl_init();
     }
+    curl_setopt_array($this->curl, $this->curl_opts_default);
     return $this;
   }
 
@@ -88,14 +89,20 @@ class HttpRequest implements HttpRequestInterface
      * 'CURLOPT_CUSTOMREQUEST' when setting it to null, but to a empty string.
      * Bad request error ensues.
      */
-    if (version_compare(PHP_VERSION, '5.5.11', '<')) {
-      $this->curl_opts[CURLOPT_CUSTOMREQUEST] = 'GET';
+
+    if ((version_compare(PHP_VERSION, '5.5.11', '<') or defined('HHVM_VERSION'))) {
+      if (isset($this->curl_opts[CURLOPT_CUSTOMREQUEST])) {
+        $this->curl_opts[CURLOPT_CUSTOMREQUEST] = 'GET';
+      }
     }
     $this->curl_opts[CURLOPT_URL] = $data === null ? $url : $url.'?'.http_build_query($data, '', '&');
     $this->curl_opts[CURLOPT_HTTPGET] = true;
-    $this->curl_opts[CURLOPT_HTTPHEADER] = $this->_prepareHeaders();
+    if (!empty($this->send_headers)) {
+      $this->curl_opts[CURLOPT_HTTPHEADER] = $this->_prepareHeaders();
+    }
 
     $this->_setOptions();
+    $this->curl_opts = [];
 
     if (($result = curl_exec($this->curl)) !== false) {
       return $result;
@@ -118,9 +125,9 @@ class HttpRequest implements HttpRequestInterface
   public function post($url, $data = null, $is_json = false)
   {
     /**
-     * If $data is "url encoded" the content type is "application\/x-www-form-
+     * If $data is "url encoded" the content type is "application/x-www-form-
      * urlencoded", otherwise, if the data passed is an array the content type
-     * will be "multipart\/form-data;boundary=------------------------a83e...."
+     * will be "multipart/form-data;boundary=------------------------a83e...."
     */
     if ($is_json) {
       $this->setHeaders('Content-Type', 'application/json');
@@ -138,15 +145,20 @@ class HttpRequest implements HttpRequestInterface
      * 'CURLOPT_CUSTOMREQUEST' when setting it to null, but to a empty string.
      * Bad request error ensues.
      */
-    if (version_compare(PHP_VERSION, '5.5.11', '<')) {
-      $this->curl_opts[CURLOPT_CUSTOMREQUEST] = 'POST';
+    if ((version_compare(PHP_VERSION, '5.5.11', '<') or defined('HHVM_VERSION'))) {
+      if (isset($this->curl_opts[CURLOPT_CUSTOMREQUEST])) {
+        $this->curl_opts[CURLOPT_CUSTOMREQUEST] = 'POST';
+      }
     }
     $this->curl_opts[CURLOPT_URL] = $url;
     $this->curl_opts[CURLOPT_POST] = true;
     $this->curl_opts[CURLOPT_POSTFIELDS] = $send_data;
-    $this->curl_opts[CURLOPT_HTTPHEADER] = $this->_prepareHeaders();
+    if (!empty($this->send_headers)) {
+      $this->curl_opts[CURLOPT_HTTPHEADER] = $this->_prepareHeaders();
+    }
 
     $this->_setOptions();
+    $this->curl_opts = [];
 
     if (($result = curl_exec($this->curl)) !== false) {
       return $result;
@@ -168,12 +180,6 @@ class HttpRequest implements HttpRequestInterface
  */
   public function put($url, $data = null, $is_json = false)
   {
-//     curl_setopt_array($this->curl, [
-//       CURLOPT_URL => $url,
-//       CURLOPT_PUT => true,
-//       CURLOPT_INFILE => '',
-//       CURLOPT_INFILESIZE => 0
-//     ]);
     if ($is_json) {
       $this->setHeaders('Content-Type', 'application/json');
       $send_data = json_encode($data);
@@ -187,9 +193,12 @@ class HttpRequest implements HttpRequestInterface
     $this->curl_opts[CURLOPT_URL] = $url;
     $this->curl_opts[CURLOPT_CUSTOMREQUEST] = 'PUT';
     $this->curl_opts[CURLOPT_POSTFIELDS] = $send_data;
-    $this->curl_opts[CURLOPT_HTTPHEADER] = $this->_prepareHeaders();
+    if (!empty($this->send_headers)) {
+      $this->curl_opts[CURLOPT_HTTPHEADER] = $this->_prepareHeaders();
+    }
 
     $this->_setOptions();
+    $this->curl_opts = [];
     $this->curl_opts[CURLOPT_CUSTOMREQUEST] = null;
 
     if (($result = curl_exec($this->curl)) !== false) {
@@ -208,9 +217,12 @@ class HttpRequest implements HttpRequestInterface
   {
     $this->curl_opts[CURLOPT_URL] = $url;
     $this->curl_opts[CURLOPT_CUSTOMREQUEST] = 'DELETE';
-    $this->curl_opts[CURLOPT_HTTPHEADER] = $this->_prepareHeaders();
+    if (!empty($this->send_headers)) {
+      $this->curl_opts[CURLOPT_HTTPHEADER] = $this->_prepareHeaders();
+    }
 
     $this->_setOptions();
+    $this->curl_opts = [];
     $this->curl_opts[CURLOPT_CUSTOMREQUEST] = null;
 
     if (($result = curl_exec($this->curl)) !== false) {

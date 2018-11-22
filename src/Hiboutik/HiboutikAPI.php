@@ -7,7 +7,7 @@ namespace Hiboutik;
  *
  * @package Hiboutik\HiboutikAPI
  *
- * @version 2.3.1
+ * @version 2.3.2
  * @author  Hiboutik
  *
  * @license GPLv3

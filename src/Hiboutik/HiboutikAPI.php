@@ -31,6 +31,8 @@ class HiboutikAPI implements HiboutikAPIInterface
   public $errorCode = null;
   /** @var boolean True if HTTP status code is 200 or 201 */
   public $request_ok = false;
+  /** @var boolean Set to false to get an object instead of an array */
+  public $return_array = true;
 
 
 /**
@@ -280,7 +282,7 @@ class HiboutikAPI implements HiboutikAPIInterface
   {
     $this->request_ok = false;
     $code = $this->hr->getCode();
-    $response = json_decode($result, true);
+    $response = json_decode($result, $this->return_array);
     if ($code === 200 or $code === 201) {
       $this->request_ok = true;
     } else {

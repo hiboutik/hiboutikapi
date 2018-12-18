@@ -6,7 +6,7 @@ namespace Hiboutik\HiboutikAPI;
 /**
  * @package Hiboutik\HiboutikAPI\HttpRequest
  *
- * @version 1.1.2
+ * @version 1.2.0
  * @author  Hiboutik
  *
  * @license GPLv3
@@ -34,6 +34,8 @@ class HttpRequest implements HttpRequestInterface
   ];
   /** @var array Curl options */
   public $curl_opts = [];
+  /** @var array Curl error */
+  public $error = [];
 
 
 /**
@@ -54,6 +56,17 @@ class HttpRequest implements HttpRequestInterface
       $this->curl_opts_default = array_merge($this->curl_opts_default, $opts);
     }
     curl_setopt_array($this->curl, $this->curl_opts_default);
+  }
+
+
+/**
+ * Default destructor
+ *
+ * @return integer
+ */
+  public function __destruct()
+  {
+    curl_close($this->curl);
   }
 
 
@@ -86,7 +99,7 @@ class HttpRequest implements HttpRequestInterface
   {
     /**
      * PHP versions inferior to 5.5.11 have a bug what does not reset the
-     * 'CURLOPT_CUSTOMREQUEST' when setting it to null, but to a empty string.
+     * 'CURLOPT_CUSTOMREQUEST' when setting it to null, but to an empty string.
      * Bad request error ensues.
      */
 
@@ -104,9 +117,7 @@ class HttpRequest implements HttpRequestInterface
     $this->_setOptions();
     $this->curl_opts = [];
 
-    if (($result = curl_exec($this->curl)) !== false) {
-      return $result;
-    }
+    return $this->_exec();
   }
 
 
@@ -142,7 +153,7 @@ class HttpRequest implements HttpRequestInterface
 
     /**
      * PHP versions inferior to 5.5.11 have a bug what does not reset the
-     * 'CURLOPT_CUSTOMREQUEST' when setting it to null, but to a empty string.
+     * 'CURLOPT_CUSTOMREQUEST' when setting it to null, but to an empty string.
      * Bad request error ensues.
      */
     if ((version_compare(PHP_VERSION, '5.5.11', '<') or defined('HHVM_VERSION'))) {
@@ -160,9 +171,7 @@ class HttpRequest implements HttpRequestInterface
     $this->_setOptions();
     $this->curl_opts = [];
 
-    if (($result = curl_exec($this->curl)) !== false) {
-      return $result;
-    }
+    return $this->_exec();
   }
 
 
@@ -201,9 +210,7 @@ class HttpRequest implements HttpRequestInterface
     $this->curl_opts = [];
     $this->curl_opts[CURLOPT_CUSTOMREQUEST] = null;
 
-    if (($result = curl_exec($this->curl)) !== false) {
-      return $result;
-    }
+    return $this->_exec();
   }
 
 
@@ -225,7 +232,23 @@ class HttpRequest implements HttpRequestInterface
     $this->curl_opts = [];
     $this->curl_opts[CURLOPT_CUSTOMREQUEST] = null;
 
-    if (($result = curl_exec($this->curl)) !== false) {
+    return $this->_exec();
+  }
+
+
+/**
+ * Execute a curl request
+ *
+ * @return string
+ */
+  protected function _exec()
+  {
+    $result = curl_exec($this->curl);
+    if ($result === false) {
+      $this->error = $this->_handleError(curl_errno($this->curl), curl_error($this->curl));
+      return '';
+    } else {
+      $this->error = [];
       return $result;
     }
   }
@@ -240,15 +263,26 @@ class HttpRequest implements HttpRequestInterface
   {
     $return_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
     if ($return_code == 0) {
-      return [
-        'error' => [
-          'code' => curl_errno($this->curl),
-          'error_description' => curl_error($this->curl)
-        ]
-      ];
+      return $this->_handleError(curl_errno($this->curl), curl_error($this->curl));
     } else {
       return curl_getinfo($this->curl);
     }
+  }
+
+
+/**
+ * Check curl errors
+ *
+ * @return array
+ */
+  protected function _handleError($code, $error_description)
+  {
+    return [
+      'error' => [
+        'code' => $code,
+        'error_description' => $error_description
+      ]
+    ];
   }
 
 
@@ -420,13 +454,13 @@ class HttpRequest implements HttpRequestInterface
 
 
 /**
- * Default destructor
+ * Set a curl option
  *
  * @return integer
  */
-  public function __destruct()
+  public function setOpt($key, $value)
   {
-    curl_close($this->curl);
+    curl_setopt($this->curl, $key, $value);
   }
 
 

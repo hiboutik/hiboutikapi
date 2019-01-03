@@ -206,6 +206,7 @@ class HiboutikAPI implements HiboutikAPIInterface
  *     ]
  *   ]
  * ]
+ * The 'type' key is optional. If not set, 'type' will be 'application/octet-stream'
  * @uses HiboutikAPI::_handleRequest
  * @return array|string
  */

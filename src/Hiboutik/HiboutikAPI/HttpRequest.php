@@ -250,7 +250,7 @@ class HttpRequest implements HttpRequestInterface
  *     ]
  *   ]
  * ]
- * The 'type' key is optional. If not set, 'type' will be 'application/octet-stream'
+ * The 'type' key is optional. If not set, 'type' will be 'application/octet-stream'.
  * @return string
  */
   public function postFile($url, $data, $files)

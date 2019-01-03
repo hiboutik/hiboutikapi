@@ -70,7 +70,7 @@ if ($hiboutik->request_ok) {
 
 To create a new product:
 ```php
-$hiboutik->post("products", [
+$result = $hiboutik->post("products", [
   "product_model" => "My product",
   "product_barcode" => "",
   "product_brand" => "2",

@@ -7,7 +7,7 @@ namespace Hiboutik;
  *
  * @package Hiboutik\HiboutikAPI
  *
- * @version 2.5.0
+ * @version 2.6.0
  * @author  Hiboutik
  *
  * @license GPLv3
@@ -193,10 +193,23 @@ class HiboutikAPI implements HiboutikAPIInterface
 /**
  * @param string            $resource API route
  * @param array|object|null $data
+ * @param array  $files Files to upload in the following form:
+ * [
+ *   'image' => [
+ *     [
+ *       'file' => '/path/to/file',
+ *       'type' => 'image/jpeg'
+ *     ],
+ *     [
+ *       'file' => '/path/to/second/file',
+ *       'type' => 'image/jpeg'
+ *     ]
+ *   ]
+ * ]
  * @uses HiboutikAPI::_handleRequest
  * @return array|string
  */
-  public function post($resource = '', $data = null)
+  public function post($resource = '', $data = null, $files = null)
   {
     if (strpos($resource, '/') !== 0) {
       $resource = "/$resource";
@@ -204,7 +217,11 @@ class HiboutikAPI implements HiboutikAPIInterface
     $this->request_type = 'POST';
     $this->request_resource = $this->uri.$resource;
     $this->request_data = $data;
-    return $this->_handleRequest($this->hr->post($this->uri.$resource, $data));
+    if ($files === null) {
+      return $this->_handleRequest($this->hr->post($this->uri.$resource, $data));
+    } else {
+      return $this->_handleRequest($this->hr->postFile($this->uri.$resource, $data, $files));
+    }
   }
 
 

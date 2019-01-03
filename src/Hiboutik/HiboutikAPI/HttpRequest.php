@@ -6,7 +6,7 @@ namespace Hiboutik\HiboutikAPI;
 /**
  * @package Hiboutik\HiboutikAPI\HttpRequest
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @author  Hiboutik
  *
  * @license GPLv3
@@ -115,7 +115,6 @@ class HttpRequest implements HttpRequestInterface
     }
 
     $this->_setOptions();
-    $this->curl_opts = [];
 
     return $this->_exec();
   }
@@ -169,7 +168,6 @@ class HttpRequest implements HttpRequestInterface
     }
 
     $this->_setOptions();
-    $this->curl_opts = [];
 
     return $this->_exec();
   }
@@ -207,7 +205,6 @@ class HttpRequest implements HttpRequestInterface
     }
 
     $this->_setOptions();
-    $this->curl_opts = [];
     $this->curl_opts[CURLOPT_CUSTOMREQUEST] = null;
 
     return $this->_exec();
@@ -229,10 +226,106 @@ class HttpRequest implements HttpRequestInterface
     }
 
     $this->_setOptions();
-    $this->curl_opts = [];
     $this->curl_opts[CURLOPT_CUSTOMREQUEST] = null;
 
     return $this->_exec();
+  }
+
+
+/**
+ * Upload a file
+ *
+ * @param string $url
+ * @param array  $data Post data in key => value form
+ * @param array  $files Files to upload in the following form:
+ * [
+ *   'image' => [
+ *     [
+ *       'file' => '/path/to/file',
+ *       'type' => 'image/jpeg'
+ *     ],
+ *     [
+ *       'file' => '/path/to/second/file',
+ *       'type' => 'image/jpeg'
+ *     ]
+ *   ]
+ * ]
+ * The 'type' key is optional. If not set, 'type' will be 'application/octet-stream'
+ * @return string
+ */
+  public function postFile($url, $data, $files)
+  {
+    if ((version_compare(PHP_VERSION, '5.5.11', '<') or defined('HHVM_VERSION'))) {
+      if (isset($this->curl_opts[CURLOPT_CUSTOMREQUEST])) {
+        $this->curl_opts[CURLOPT_CUSTOMREQUEST] = 'POST';
+      }
+    }
+
+    $files_array = [];
+    foreach ($files as $name => $input) {
+      if (count($input) > 1) {
+        foreach ($input as $key => $file) {
+          if (!file_exists($file['file'])) {
+            $this->error = $this->_handleError('file_not_found', 'The file to upload was not found');
+            return '';
+          }
+          $files_array["{$name}[$key]"] = $this->_createCurlFile($file);
+        }
+      } else {
+        if (!file_exists($input[0]['file'])) {
+          $this->error = $this->_handleError('file_not_found', 'The file to upload was not found');
+          return '';
+        }
+        $files_array["{$name}"] = $this->_createCurlFile($input[0]);
+      }
+    }
+
+    if (version_compare(PHP_VERSION, '5.5.0', '>') and version_compare(PHP_VERSION, '5.6.0', '<')) {
+      $this->curl_opts[CURLOPT_SAFE_UPLOAD] = true;
+    }
+
+    $this->curl_opts[CURLOPT_URL] = $url;
+    $this->curl_opts[CURLOPT_POST] = true;
+    if (is_array($data)) {
+      $send_data = array_merge($data, $files_array);
+    } else {
+      $send_data = $files_array;
+    }
+    $this->curl_opts[CURLOPT_POSTFIELDS] = $send_data;
+
+    $this->_setOptions();
+
+    return $this->_exec();
+  }
+
+
+/**
+ * @internal
+ *
+ * Returns a file to upload
+ *
+ * @param array $file Format:
+ * [
+ *   'file' => '/path/to/file',
+ *   'type' => 'image/jpeg'
+ * ]
+ * The 'type' key is optional.
+ *
+ * @return string|CURLFile
+ */
+  protected function _createCurlFile($file)
+  {
+    // PHP < 5.5.0 does not have the 'CURLFile' class, the '@' tag is used to prefix file paths
+    if ((version_compare(PHP_VERSION, '5.5.0', '<'))) {
+      return "@{$file['file']}".(isset($file['type']) ? ";type={$file['type']}" : '');
+    } else {
+      $cfile = new \CURLFile($file['file']);
+      if (isset($file['type'])) {
+        $cfile->setMimeType($file['type']);
+      }
+      $cfile->setPostFilename(basename($file['file']));
+      return $cfile;
+    }
   }
 
 
@@ -271,6 +364,8 @@ class HttpRequest implements HttpRequestInterface
 
 
 /**
+ * @internal
+ *
  * Check curl errors
  *
  * @return array
@@ -334,6 +429,8 @@ class HttpRequest implements HttpRequestInterface
 
 
 /**
+ * @internal
+ *
  * Convert headers array to right format
  *
  * The headers are stored in an array shaped as $key => $value pairs. This
@@ -476,5 +573,6 @@ class HttpRequest implements HttpRequestInterface
     if (!curl_setopt_array($this->curl, $this->curl_opts)) {
       throw new \Exception('Class Hiboutik\HttpRequest: invalid option;');
     }
+    $this->curl_opts = [];
   }
 }

@@ -7,7 +7,7 @@ namespace Hiboutik;
  *
  * @package Hiboutik\HiboutikAPI
  *
- * @version 2.6.0
+ * @version 2.5.0
  * @author  Hiboutik
  *
  * @license GPLv3
@@ -206,7 +206,7 @@ class HiboutikAPI implements HiboutikAPIInterface
  *     ]
  *   ]
  * ]
- * The 'type' key is optional. If not set, 'type' will be 'application/octet-stream'
+ * The 'type' key is optional, defaults to 'application/octet-stream'.
  * @uses HiboutikAPI::_handleRequest
  * @return array|string
  */

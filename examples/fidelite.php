@@ -11,82 +11,67 @@
  ***********************************************************************************************************************
  *
  *   Ce script permet de définir les points fidélité a la clôture d'une vente en fonction du prix des produits vendus selon la règle 1 euro = 1 point
- *   API Key & Email : SETTINGS -> USERS -> Click on the wrench symbol.
+ *   API Key & Email : Cliquez sur le A en haut à droite de votre compte Hiboutik
  *
  */
 
-//error_reporting(E_ALL);
-
-$account = ""; //libellé de votre compte | http://www.logiciel-caisse-gratuit.com/ou-trouver-mon-numero-de-compte-ainsi-que-le-libelle-de-mon-compte/
-$user = ""; //adresse email
-$key = ""; //clé d'accès à l'API
 
 
-require 'vendor/autoload.php';
+require __DIR__.'/../../HiboutikAPI/src/Hiboutik/HiboutikAPI/autoloader.php';
 
-try {
+//API REST Hiboutik
+$hiboutik_account = "";
+$user = "";
+$pass = "";
 
-//on vérifie qu'on récupère bien la variable order_id par POST (URL de callback sur ventes)
-if (!isset($_POST['order_id'])) {throw new Exception("Please provide a valid order_id", 75009);} else {$order_id = $_POST['order_id'];}
 
-//est ce qu'on a tous les éléments permettant d'accéder à l'API ?
-if (empty($account) OR empty($user) OR empty($key)) throw new Exception("Please provide a valid account, user & key", 75009);
+$hiboutik = new \Hiboutik\HiboutikAPI($hiboutik_account, $user, $pass);
 
-//instanciation de l'API Hiboutik 
-$hiboutik = new \Hiboutik\HiboutikAPI($account, $user, $key);
+if (!isset($_POST['sale_id'])) {print("Please provide a valid sale_id");exit;} else {$sale_id = $_POST['sale_id'];}
 
-//récupération des informations associées a la vente
-$order_details = $hiboutik->getHiboutik("sales/$order_id");
+$result = $hiboutik->get("/sales/$sale_id");
+if ($hiboutik->request_ok) {
 
-//cas où il n'est pas possible d'accéder à l'API
-if ($hiboutik->error)
+//on récupère tous les produits de la vente
+$line_items = $result[0]['line_items'];
+
+//pour chaque ligne de la vente
+foreach ($line_items as $valeur)
 {
-$hiboutik_response = $hiboutik->response;
-throw new Exception("$hiboutik_response", 75009);
-}
-
-//on vérifie qu'on a bien un résultat pour notre appel à l'API
-if (count($order_details) <> "1")
-{
-$hiboutik_response = "Should obtain only one result but we fond : " . count($order_details);
-throw new Exception("$hiboutik_response", 75009);
-}
-
-$line_items = $order_details[0]->line_items;
-
-//récupération des lignes de la vente
-foreach ($line_items as $cle => $valeur)
-{
-$detail_commande_id = $valeur -> detail_commande_id;
-$quantity = $valeur -> quantity;
-$product_price = $valeur -> product_price;
+$line_item_id = $valeur['line_item_id'];
+$quantity = $valeur['quantity'];
+$product_price = $valeur['product_price'];
 
 //calcul des points | règle 1 euro = 1 point
 $points = $quantity * $product_price;
 //éventuellement gestion de l'arrondi car les points ne peuvent être que des entiers (integer)
-
-$hiboutik = new \Hiboutik\HiboutikAPI($account, $user, $key);
 
 //mise à jour des points des produits de la vente
 $data = array(
   "line_item_attribute" => "points",
   "new_value" => $points,
 );
-$create_a_sale = $hiboutik->putHiboutik("sale_line_item/$detail_commande_id", $data);
-
+$update_points = $hiboutik->put("/sale_line_item/$line_item_id", $data);
 }
 
-} catch (Exception $e) {
-    $message_retour = $e->getMessage();
-  if ($e->getCode() === 75009) {
-    header("HTTP/1.1 500 $message_retour");
-    echo "Error : $message_retour";
-  } else {
-    error_log($message_retour, 0);
-  }
+header('Content-type: application/json; charset=utf-8');
+$message_retour["alerte"] = "
+<div class=\"alert alert-info alert-dismissable\">
+<button aria-hidden=\"true\" data-dismiss=\"alert\" class=\"close\" type=\"button\">×</button>
+<strong>Fidélité appliquée avec succès</strong>
+</div>
+";
+echo json_encode($message_retour);
+exit();
+
+
 }
-
-
-
-
-?>
+else
+{
+print 'An error has occured';
+if (isset($result['details']['error_description'])) {
+print ': '.$result['details']['error_description'];
+} else {
+print ': '.$result['error_description'];
+}
+}

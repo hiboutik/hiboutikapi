@@ -18,6 +18,8 @@
  * - Trier les produits par prix
  * - Mettre le prix a zéro sur un article sur x (le moins cher)
  *
+ * A mettre en place sur un bouton d'action : POST /action_links/ avec action_link_location : salebtn & action_link_type : silent
+ *
  */
 
 require 'vendor/autoload.php';

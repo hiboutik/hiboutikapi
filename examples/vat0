@@ -1,0 +1,34 @@
+<?php
+/**
+ *
+ *
+ *  @author:    Hiboutik
+ *  @email      contact[at]hiboutik.com
+ *
+ ***********************************************************************************************************************
+ *  @licence    GPLv3 as in "https://gnu.org/licenses/gpl.html"
+ ***********************************************************************************************************************
+ *
+ *   Ce script permet de passer la TVA a 0 dès que le produit est ajouté sur la vente
+ *		Il faut bien vérifier l'id TVA concerné
+ */
+
+
+
+$hiboutik_account = "";
+$user = "";
+$pass = "";
+
+require __DIR__.'/../../HiboutikAPI/src/Hiboutik/HiboutikAPI/autoloader.php';
+
+if (isset($_POST['line_item']))
+{
+//connexion a l'API
+$hiboutik = new \Hiboutik\HiboutikAPI($hiboutik_account, $user, $pass);
+
+$change_vat_product = $hiboutik->put("/sale_line_item/".$_POST['line_item']."/", [
+'line_item_attribute' => 'vat',
+'new_value' => 0
+]);
+
+}

@@ -1,0 +1,28 @@
+<?php
+/**
+ *
+ *
+ *  @author:    Hiboutik
+ *  @email      contact[at]hiboutik.com
+ *
+ ***********************************************************************************************************************
+ *  @licence    GPLv3 as in "https://gnu.org/licenses/gpl.html"
+ ***********************************************************************************************************************
+ *
+ *  Ce script permet de supprimer tous les produits d'une vente
+ * 	A configurer avec un bouton d'action
+ *
+ */
+
+$hiboutik_account = "myaccount";
+$user = "xxxxxx@gmail.com";
+$pass = "zzzzz";
+
+require __DIR__.'/../../HiboutikAPI/src/Hiboutik/HiboutikAPI/autoloader.php';
+
+if (isset($_POST['sale_id']))
+{
+$hiboutik = new \Hiboutik\HiboutikAPI($hiboutik_account, $user, $pass);
+$infos_vente = $hiboutik->get("/sales/".$_POST['sale_id']);
+foreach ($infos_vente[0]['line_items']as $my_line_item) $del_prod = $hiboutik->delete("/sale_line_item/".$my_line_item['line_item_id']);
+}

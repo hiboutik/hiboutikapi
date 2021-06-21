@@ -1,0 +1,81 @@
+<?php
+/**
+ *
+ *  @author:    Hiboutik
+ *  @email      contact[at]hiboutik.com
+ *
+ ***********************************************************************************************************************
+ *  @licence    GPLv3 as in "https://gnu.org/licenses/gpl.html"
+ ***********************************************************************************************************************
+ *
+ *   Ce script permet de gérer l'impression du ticket de caisse
+ *
+ */
+
+require __DIR__.'/../../HiboutikAPI/src/Hiboutik/HiboutikAPI/autoloader.php';
+
+$hiboutik_account = "";
+$user = "";
+$pass = "";
+
+//ouverture de la connexion à l'API
+$hiboutik = new \Hiboutik\HiboutikAPI($hiboutik_account, $user, $pass);
+
+//récupération des infos relatives à la appsvente
+$infos_vente = $hiboutik->get("/sales/".$_POST['sale_id']."");
+
+//on initialise les données a imprimer
+$doc_a_imprimer = "
+<hibou_use_font_b>\r
+<hibou_font_size>2|2\r
+<hibou_bold>\r
+HIBOUTIK\r
+</hibou_bold>\r
+<hibou_font_size>1|1\r
+30 place du Centre - 01234 MAVILLE
+01 23 45 67 89 - contact@hiboutik.com
+
+Date : ".$infos_vente[0]['created_at']."
+Vente : ".$infos_vente[0]['sale_id']."
+
+<hibou_align_left>\r
+
+";
+
+foreach ($infos_vente[0]['line_items'] as $valeur)
+{
+$doc_a_imprimer .= "x".$valeur['quantity']." ".$valeur['product_model']."                  ".$valeur['item_unit_gross']."";
+}
+
+$doc_a_imprimer .= "
+________________________________________
+<hibou_bold>\r
+TOTAL                           ".$infos_vente[0]['total']."
+</hibou_bold>\r
+
+";
+
+$doc_a_imprimer .= "
+TVA";
+foreach ($infos_vente[0]['taxes'] as $valeur)
+{
+$doc_a_imprimer .= "
+".$valeur['tax_label']." ".$valeur['total_vat']."";
+}
+
+
+$doc_a_imprimer .= "
+
+Merci de votre visite. A bientôt!
+";
+
+
+$print = $hiboutik->post("/print/misc/", [
+'store_id' => $infos_vente[0]['store_id'],
+'ip_address' => $_POST['ip_addr'],
+'data' => $doc_a_imprimer
+]);
+
+
+
+

@@ -1,0 +1,44 @@
+<?php
+/**
+ *
+ *  Backup
+ *
+ *  @author:    Hiboutik
+ *  @email      contact[at]hiboutik.com
+ *
+ ***********************************************************************************************************************
+ *  @licence    GPLv3 as in "https://gnu.org/licenses/gpl.html"
+ ***********************************************************************************************************************
+ *
+ *   Ce script permet de calculer un prix au kilo et le réintègre dans le champ misc_decimal. Le poids en grammes est a indiquer dans le champ misc_int
+ *   Pour une impression sur étiquette utiliser la balise <hibou_print_products_misc_decimal>
+ *   A brancher sur un bouton d'action --> POST /action_links/
+ *
+ */
+
+
+require __DIR__.'/../../HiboutikAPI/src/Hiboutik/HiboutikAPI/autoloader.php';
+
+//API REST Hiboutik
+$account = "";
+$user = "uuuuuuu@hiboutik.com";
+$pass = "xxxxxxxxx";
+
+$hiboutik = new \Hiboutik\HiboutikAPI($account, $user, $pass);
+
+
+if (isset($_POST['product_id']))
+{
+$product_infos = $hiboutik->get("/products/".$_POST['product_id']);
+if ($hiboutik->request_ok) {
+if ($product_infos[0]['misc_int'] <> "0")
+{
+$prix_au_poids = $product_infos[0]['product_price'] * 1000 / $product_infos[0]['misc_int'];
+$data = array(
+  "product_attribute" => "misc_decimal",
+  "new_value" => $prix_au_poids
+);
+$update_product = $hiboutik->put("/product/".$_POST['product_id'], $data);
+}
+}
+}

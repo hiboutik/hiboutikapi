@@ -1,0 +1,62 @@
+<?php
+/**
+ *
+ *  @author:    Hiboutik
+ *  @email      contact[at]hiboutik.com
+ *
+ ***********************************************************************************************************************
+ *  @licence    GPLv3 as in "https://gnu.org/licenses/gpl.html"
+ ***********************************************************************************************************************
+ *
+ *   Ce script permet d'envoyer par mail une commande fournisseur
+ *
+ */
+
+require __DIR__.'/../../HiboutikAPI/src/Hiboutik/HiboutikAPI/autoloader.php';
+
+$hiboutik_account = "";
+$user = "";
+$pass = "";
+
+if (!isset($_POST['inventory_input_id'])) throw new Exception("No inventory_input_id received");
+
+//ouverture de la connexion à l'API
+$hiboutik = new \Hiboutik\HiboutikAPI($hiboutik_account, $user, $pass);
+
+//récupération des fournisseurs
+$suppliers = $hiboutik->get("/suppliers/");
+
+//récupération des infos relatives à l'arrivage
+$infos_arrivage = $hiboutik->get("/inventory_inputs/".$_POST['inventory_input_id']."");
+
+$inventory_input_details = $hiboutik->get("/inventory_input_details/".$_POST['inventory_input_id']."");
+
+
+
+//on initialise le mail a envoyer
+$message = "
+Bonjour,
+
+Pourriez-vous prévoir prochainement une livraison des références que vous trouverez ci-dessous.
+
+Cordialement
+";
+
+foreach ($inventory_input_details as $inventory_input_detail) {
+$total_ligne = $inventory_input_detail['product_price'] * $inventory_input_detail['quantity'];
+
+$message .= "
+\n\n".$inventory_input_detail['quantity']." x ".$inventory_input_detail['product_supplier_reference']."
+\n".$inventory_input_detail['product_model']."
+\n".$inventory_input_detail['product_price']."
+\n$total_ligne
+
+";
+
+
+}
+
+//envoi du mail
+//email fournisseur --> $suppliers[$infos_arrivage[0]['inventory_input_supplier_id']]['supplier_email']
+//https://www.php.net/manual/fr/function.mail.php
+
